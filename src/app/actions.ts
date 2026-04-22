@@ -5,52 +5,28 @@ import { sendTicketEmail } from "@/lib/resend"
 
 export async function bookTicket(email: string, name: string, character: string) {
   try {
-    // 1. Call the 'handle_booking' SQL function created in Supabase
     const { data, error } = await supabaseAdmin.rpc('handle_booking', {
       p_email: email,
       p_name: name,
       p_char: character
     })
 
-    if (error) {
-      console.error("Supabase RPC Error:", error.message)
-      return { success: false, message: "Connection to booking engine failed." }
-    }
+    if (error) throw error;
 
     const result = data && data[0]
-
-    if (!result) {
-      return { success: false, message: "Unexpected response from server." }
-    }
-
-    if (!result.success) {
-      if (result.message === 'ALL_SLOTS_FULL') {
-        return { 
-          success: false, 
-          isFull: true,
-          message: "All slots are fully booked! Watch the premiere on YouTube." 
-        }
+    if (!result || !result.success) {
+      return { 
+        success: false, 
+        isFull: result?.message === 'ALL_SLOTS_FULL', 
+        message: result?.message === 'ALL_SLOTS_FULL' ? "All slots are full!" : "Booking failed." 
       }
-      return { success: false, message: "Booking failed. Please try again." }
     }
 
-    const ticketId = result.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    // result.id comes from the database as a UUID
+    const ticketId = result.id 
     
-    const characters: Record<string, string> = {
-      'aarav': 'Aarav',
-      'ayaan': 'Ayaan',
-      'siddharth': 'Siddharth',
-      'kiara': 'Kiara',
-      'zoya': 'Zoya',
-      'vihan': 'Vihan',
-      'ayushi': 'Ayushi',
-      'jhanvi': 'Jhanvi'
-    }
-    const charName = characters[character] || character
-    
-    sendTicketEmail(email, name, charName, result.assigned_slot, ticketId).catch(err => {
-      console.error("Email send failed:", err)
-    })
+    // Background email task
+    sendTicketEmail(email, name, character, result.assigned_slot, ticketId).catch(console.error)
 
     return { 
       success: true, 
@@ -58,88 +34,90 @@ export async function bookTicket(email: string, name: string, character: string)
       ticketId: ticketId,
       message: "Ticket Confirmed!" 
     }
-
   } catch (err) {
     console.error("Action Error:", err)
-    return { success: false, message: "An unexpected error occurred." }
+    return { success: false, message: "Server error." }
   }
 }
 
+/**
+ * UPDATED: Robust Check-In for Admin Scanner
+ * Added .trim() and detailed console logs to diagnose "QR not recognized"
+ */
 export async function checkIn(ticketId: string) {
   try {
+    const cleanId = ticketId.trim();
+    console.log("Admin scanning ID:", cleanId);
+
+    // 1. Look for the ticket
     const { data, error } = await supabaseAdmin
       .from('bookings')
       .select('*')
-      .eq('id', ticketId)
+      .eq('id', cleanId)
       .single()
 
     if (error || !data) {
-      return { success: false, message: "Ticket not found." }
+      console.error("Database Lookup Failed for ID:", cleanId, "Error:", error?.message);
+      return { success: false, message: "QR not recognized in database." }
     }
 
     if (data.is_checked_in) {
-      return { success: false, message: "Ticket already checked in." }
+      return { success: false, message: `Already checked in: ${data.name}` }
     }
 
+    // 2. Perform the check-in update
     const { error: updateError } = await supabaseAdmin
       .from('bookings')
-      .update({ is_checked_in: true, checked_in_at: new Date().toISOString() })
-      .eq('id', ticketId)
+      .update({ 
+        is_checked_in: true, 
+        checked_in_at: new Date().toISOString() 
+      })
+      .eq('id', cleanId)
 
     if (updateError) {
-      console.error("Check-in error:", updateError.message)
-      return { success: false, message: "Failed to check in ticket." }
+      console.error("Update failed:", updateError.message);
+      return { success: false, message: "Database update failed." }
     }
 
     return { 
       success: true, 
-      message: "Ticket checked in successfully!",
-      userName: data.name,
-      charName: data.character
+      message: `Success! Checked in ${data.name}`,
+      userName: data.name
     }
-
   } catch (err) {
-    console.error("Check-in Action Error:", err)
+    console.error("Check-in Crash:", err);
     return { success: false, message: "An unexpected error occurred." }
   }
 }
 
+/**
+ * UPDATED: Stats with 225 capacity
+ */
 export async function getBookingStats() {
   try {
-    // We select the assigned_slot and use the count head to get totals
-    // Supabase handles the grouping logic implicitly via this syntax
     const { data, error } = await supabaseAdmin
       .from('bookings')
       .select('assigned_slot')
 
-    if (error) {
-      console.error("Stats error:", error.message)
-      return { success: false, slot1: 0, slot2: 0, total: 0 }
-    }
+    if (error) throw error;
 
-    let slot1 = 0
-    let slot2 = 0
-
-    if (data) {
-      slot1 = data.filter((b: any) => b.assigned_slot === 1).length
-      slot2 = data.filter((b: any) => b.assigned_slot === 2).length
-    }
-
-    const total = slot1 + slot2
+    const s1 = data?.filter((b: any) => b.assigned_slot === 1).length || 0
+    const s2 = data?.filter((b: any) => b.assigned_slot === 2).length || 0
+    
+    const MAX_PER_SLOT = 225;
 
     return { 
       success: true, 
-      slot1, 
-      slot2, 
-      total,
-      slot1Percentage: Math.round((slot1 / 200) * 100),
-      slot2Percentage: Math.round((slot2 / 200) * 100),
-      slot1Remaining: Math.max(0, 200 - slot1),
-      slot2Remaining: Math.max(0, 200 - slot2)
+      slot1: s1, 
+      slot2: s2, 
+      total: s1 + s2,
+      slot1Remaining: Math.max(0, MAX_PER_SLOT - s1),
+      slot2Remaining: Math.max(0, MAX_PER_SLOT - s2),
+      slot1Percentage: Math.round((s1 / MAX_PER_SLOT) * 100),
+      slot2Percentage: Math.round((s2 / MAX_PER_SLOT) * 100)
     }
-
   } catch (err) {
-    console.error("Stats Action Error:", err)
+    console.error("Stats Error:", err);
     return { success: false, slot1: 0, slot2: 0, total: 0 }
   }
 }
