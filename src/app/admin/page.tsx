@@ -8,7 +8,7 @@ import { checkIn, getBookingStats } from '@/app/actions'
 import { CheckCircle2, AlertCircle, BarChart3, LogOut, ShieldAlert } from 'lucide-react'
 
 // EDIT THIS LIST TO CONTROL ACCESS
-const ALLOWED_ADMINS = ['prajeshv.03@gmail.com']; 
+const ALLOWED_ADMINS = ['prajeshv.03@gmail.com','roysaket45@gmail.com']; 
 
 // Define the stats type for TypeScript consistency
 interface BookingStats {

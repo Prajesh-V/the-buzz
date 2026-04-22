@@ -6,5 +6,5 @@ export const characters = [
   { id: "zoya", name: "Zoya", type: "C", description: "The Empath." },
   { id: "vihan", name: "Vihan", type: "C", description: "The Social Architect." },
   { id: "ayushi", name: "Ayushi", type: "D", description: "The Truth Seeker." },
-  { id: "jhanvi", name: "Jhanvi", type: "D", description: "The Path Finder." },
+  { id: "narrator", name: "Narrator", type: "D", description: "The Path Finder." },
 ];
