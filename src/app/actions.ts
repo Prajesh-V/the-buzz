@@ -18,19 +18,20 @@ export async function bookTicket(email: string, name: string, character: string)
       return { 
         success: false, 
         isFull: result?.message === 'ALL_SLOTS_FULL', 
-        message: result?.message === 'ALL_SLOTS_FULL' ? "All slots are full!" : "Booking failed." 
+        message: "Booking failed." 
       }
     }
 
-    // result.id comes from the database as a UUID
-    const ticketId = result.id 
-    
+    // UPDATED: Use the new v_assigned_slot and v_id names from the SQL output
+    const ticketId = result.v_id 
+    const slot = result.v_assigned_slot
+
     // Background email task
-    sendTicketEmail(email, name, character, result.assigned_slot, ticketId).catch(console.error)
+    sendTicketEmail(email, name, character, slot, ticketId).catch(console.error)
 
     return { 
       success: true, 
-      slot: result.assigned_slot,
+      slot: slot,
       ticketId: ticketId,
       message: "Ticket Confirmed!" 
     }
