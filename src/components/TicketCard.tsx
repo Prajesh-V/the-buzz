@@ -75,8 +75,13 @@ export default function TicketCard({ charName, charId, slot, ticketId }: TicketP
           animate={{ opacity: 1, y: 0 }} 
           className="relative w-full aspect-[9/16] rounded-[24px] overflow-hidden bg-[#0F2842] border border-[#4A7BA7]/30 shadow-2xl"
         >
-          <div className="absolute inset-0 z-0">
-            <img src={`/characters/${charId}.webp`} alt={charName} className="w-full h-full object-cover opacity-60 grayscale" />
+          {/* ADJUSTED BACKGROUND IMAGE CONTAINER */}
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            <img 
+              src={`/characters/${charId}.webp`} 
+              alt={charName} 
+              className="w-full h-[101%] -translate-y-[15%] object-cover opacity-60 grayscale" 
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0F2842] via-[#0F2842]/10 to-transparent" />
           </div>
 
