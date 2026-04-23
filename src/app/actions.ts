@@ -3,12 +3,13 @@
 import { supabaseAdmin } from "@/lib/supabase"
 import { sendTicketEmail } from "@/lib/resend"
 
-export async function bookTicket(email: string, name: string, character: string) {
+export async function bookTicket(email: string, name: string, character: string, userSelectedSlot: number) {
   try {
     const { data, error } = await supabaseAdmin.rpc('handle_booking', {
       p_email: email,
       p_name: name,
-      p_char: character
+      p_char: character,
+      p_slot: userSelectedSlot
     })
 
     if (error) throw error;

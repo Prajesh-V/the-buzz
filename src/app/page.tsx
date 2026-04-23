@@ -15,7 +15,8 @@ const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600'] })
 
 export default function Home() {
   const { data: session, status } = useSession()
-  const [gameState, setGameState] = useState<'landing' | 'quiz' | 'loading' | 'poster' | 'ticket' | 'full'>('landing')
+  const [gameState, setGameState] = useState<'landing' | 'slot-selection' | 'quiz' | 'loading' | 'poster' | 'ticket' | 'full'>('landing')
+  const [selectedSlot, setSelectedSlot] = useState<number | null>(null)
   const [bookingData, setBookingData] = useState<{ charName: string, charId: string, slot: number, ticketId: string } | null>(null)
   
   const [posterIndex, setPosterIndex] = useState(0)
@@ -36,8 +37,8 @@ export default function Home() {
     const character = characters.find(c => c.name === charName)
     const charId = character?.id || 'aarav' 
 
-    if (session?.user?.email) {
-      const result = await bookTicket(session.user.email, session.user.name || "Guest", charName)
+    if (session?.user?.email && selectedSlot) {
+      const result = await bookTicket(session.user.email, session.user.name || "Guest", charName, selectedSlot)
       if (result.success && result.slot && result.ticketId) {
         setBookingData({ charName, charId, slot: result.slot, ticketId: result.ticketId })
         setGameState('poster')
@@ -64,17 +65,17 @@ export default function Home() {
 
   if (status === "loading" || gameState === 'loading') {
     return (
-      <div className={`min-h-[100dvh] bg-[#87CEEB] flex flex-col items-center justify-center text-white ${inter.className}`}>
-        <div className="w-12 h-12 border-4 border-[#3D2B1F]/20 border-t-[#8B4513] rounded-full animate-spin mb-4" />
-        <p className="text-[13px] font-medium tracking-widest animate-pulse text-[#3D2B1F]">CALCULATING IDENTITY</p>
+      <div className={`min-h-[100dvh] bg-[#DCEAFF] flex flex-col items-center justify-center text-white ${inter.className}`}>
+        <div className="w-12 h-12 border-4 border-[#0F2842]/20 border-t-[#2C5282] rounded-full animate-spin mb-4" />
+        <p className="text-[13px] font-medium tracking-widest animate-pulse text-[#0F2842]">CALCULATING IDENTITY</p>
       </div>
     )
   }
 
   return (
-    <main className={`min-h-[100dvh] w-full bg-[#87CEEB] text-white relative flex flex-col items-center justify-center p-4 overflow-hidden ${inter.className}`}>
+    <main className={`min-h-[100dvh] w-full bg-[#DCEAFF] text-white relative flex flex-col items-center justify-center p-4 overflow-hidden ${inter.className}`}>
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[15%] left-[10%] w-[500px] h-[500px] bg-[radial-gradient(circle_at_center,rgba(61,43,31,0.1),transparent_70%)] blur-[40px] rounded-full" />
+        <div className="absolute top-[15%] left-[10%] w-[500px] h-[500px] bg-[radial-gradient(circle_at_center,rgba(31,58,95,0.15),transparent_70%)] blur-[40px] rounded-full" />
       </div>
 
       <div className="relative z-10 w-full max-w-[420px]">
@@ -82,20 +83,20 @@ export default function Home() {
           
           {gameState === 'landing' && (
             <motion.div key="landing" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }} className="w-full">
-              <div className="w-full bg-[#3D2B1F]/90 backdrop-blur-xl border border-[#D2B48C]/20 rounded-[24px] p-6 shadow-2xl flex flex-col items-center text-center">
+              <div className="w-full bg-[#0F2842]/70 backdrop-blur-xl border border-[#6BA3D4]/20 rounded-[24px] p-6 shadow-2xl flex flex-col items-center text-center">
                 <div className="mb-4 relative flex flex-col items-center">
                   <Image src="/logo.png" alt="Logo" width={180} height={180} className="relative z-10 drop-shadow-2xl" priority />
-                  <p className="relative z-10 text-[11px] text-[#D2B48C]/80 mt-1 font-medium tracking-wide">by Saket Roy</p>
+                  <p className="relative z-10 text-[11px] text-[#6BA3D4]/80 mt-1 font-medium tracking-wide">by Saket Roy</p>
                 </div>
-                <h1 className={`${sora.className} text-[20px] font-semibold leading-[1.4] mb-2 text-[#FFF8DC]`}>
-                  If this made you uncomfortable, it did its job.
+                <h1 className={`${sora.className} text-[20px] font-semibold leading-[1.4] mb-2 text-[#E6F4FF]`}>
+                  Let's see who you are when you're not performing
                 </h1>
                 <div className="w-full flex flex-col gap-3 mt-6">
                   {!session ? (
                     <button onClick={() => signIn('google')} className="w-full min-h-[50px] rounded-xl bg-white/5 border border-white/10 text-white font-semibold text-[15px]">Sign in with Google</button>
                   ) : (
                     <>
-                      <button onClick={() => setGameState('quiz')} className={`${sora.className} w-full min-h-[50px] rounded-xl bg-gradient-to-br from-[#5D4037] to-[#3D2B1F] border border-[#8B4513]/40 text-white font-bold shadow-lg`}>Enter Assessment</button>
+                      <button onClick={() => { setSelectedSlot(null); setGameState('slot-selection'); }} className={`${sora.className} w-full min-h-[50px] rounded-xl bg-gradient-to-br from-[#2C5282] to-[#0F2842] border border-[#4A7BA7]/40 text-white font-bold shadow-lg`}>Enter Assessment</button>
                       <button onClick={() => signOut()} className="text-red-300 text-[11px] font-bold tracking-widest uppercase mt-2">Sign out</button>
                     </>
                   )}
@@ -104,15 +105,53 @@ export default function Home() {
             </motion.div>
           )}
 
+          {gameState === 'slot-selection' && (
+            <motion.div key="slot-selection" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }} className="w-full">
+              <div className="w-full bg-[#0F2842]/70 backdrop-blur-xl border border-[#6BA3D4]/20 rounded-[24px] p-6 shadow-2xl flex flex-col items-center text-center">
+                <h2 className={`${sora.className} text-[18px] font-semibold leading-[1.4] mb-6 text-[#E6F4FF]`}>
+                  Select Your Time Slot
+                </h2>
+                <div className="w-full flex flex-col gap-3">
+                  <button
+                    onClick={() => { setSelectedSlot(1); setGameState('quiz'); }}
+                    className={`w-full p-4 rounded-xl border-2 transition-all font-bold tracking-widest text-white ${
+                      selectedSlot === 1
+                        ? 'bg-[#2C5282] border-[#6BA3D4]'
+                        : 'bg-transparent border-[#6BA3D4]/30 hover:bg-[#2C5282]/30'
+                    }`}
+                  >
+                    Slot 1: 9:30 AM — 12:30 PM
+                  </button>
+                  <button
+                    onClick={() => { setSelectedSlot(2); setGameState('quiz'); }}
+                    className={`w-full p-4 rounded-xl border-2 transition-all font-bold tracking-widest text-white ${
+                      selectedSlot === 2
+                        ? 'bg-[#2C5282] border-[#6BA3D4]'
+                        : 'bg-transparent border-[#6BA3D4]/30 hover:bg-[#2C5282]/30'
+                    }`}
+                  >
+                    Slot 2: 2:00 PM — 4:00 PM
+                  </button>
+                </div>
+                <button
+                  onClick={() => setGameState('landing')}
+                  className="mt-6 text-[#6BA3D4] text-[11px] font-bold tracking-widest uppercase hover:text-[#E6F4FF] transition-colors"
+                >
+                  Back
+                </button>
+              </div>
+            </motion.div>
+          )}
+
           {gameState === 'quiz' && (
-            <motion.div key="quiz" className="w-full bg-[#3D2B1F]/70 backdrop-blur-xl rounded-[28px] p-2 border border-white/10 shadow-2xl">
+            <motion.div key="quiz" className="w-full bg-[#0F2842]/50 backdrop-blur-xl rounded-[28px] p-2 border border-white/10 shadow-2xl">
                <CharacterQuiz onComplete={handleQuizComplete} />
             </motion.div>
           )}
 
           {gameState === 'poster' && (
             <motion.div key="poster-slideshow-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-6">
-              <div className="relative w-full max-w-[340px] aspect-[9/13.5] rounded-[24px] overflow-hidden shadow-2xl border border-[#3D2B1F]/30 bg-[#3D2B1F]">
+              <div className="relative w-full max-w-[340px] aspect-[9/13.5] rounded-[24px] overflow-hidden shadow-2xl border border-[#0F2842]/30 bg-[#0F2842]">
                 <AnimatePresence mode="wait">
                   <motion.img 
                     key={posters[posterIndex]}
@@ -129,7 +168,7 @@ export default function Home() {
               
               <button 
                 onClick={downloadCurrentPoster}
-                className="px-6 py-2 bg-[#3D2B1F] border border-[#D2B48C]/30 rounded-full text-[10px] font-bold tracking-[0.2em] text-[#D2B48C] uppercase active:scale-95 transition-all"
+                className="px-6 py-2 bg-[#0F2842] border border-[#6BA3D4]/30 rounded-full text-[10px] font-bold tracking-[0.2em] text-[#6BA3D4] uppercase active:scale-95 transition-all"
               >
                 Download This Poster
               </button>

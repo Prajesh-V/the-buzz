@@ -85,19 +85,19 @@ export default function CharacterQuiz({ onComplete }: { onComplete: (charName: s
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -15 }}
-          className="bg-[#3D2B1F]/60 border border-[#D2B48C]/20 p-8 rounded-[2rem] shadow-[0_10px_30px_rgba(61,43,31,0.5)]"
+          className="bg-[#0F2842]/50 border border-[#6BA3D4]/20 p-8 rounded-[2rem] shadow-[0_10px_30px_rgba(15,40,66,0.3)]"
         >
           {/* Progress Tracker */}
           <div className="mb-10">
              <div className="flex justify-between items-end mb-3">
-                <span className="text-[#D2B48C] font-black text-xs tracking-[0.2em] uppercase">Phase 0{step + 1}</span>
-                <span className="text-[#D2B48C]/50 text-xs font-mono font-medium">{step + 1} / {quizData.length}</span>
+                <span className="text-[#6BA3D4] font-black text-xs tracking-[0.2em] uppercase">Phase 0{step + 1}</span>
+                <span className="text-[#6BA3D4]/50 text-xs font-mono font-medium">{step + 1} / {quizData.length}</span>
              </div>
-             <div className="h-1.5 w-full bg-[#5D4037]/50 rounded-full overflow-hidden border border-white/5">
+             <div className="h-1.5 w-full bg-[#2C5282]/30 rounded-full overflow-hidden border border-white/5">
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${((step + 1) / quizData.length) * 100}%` }}
-                  className="h-full bg-[#D2B48C] shadow-[0_0_10px_rgba(210,180,140,0.6)]"
+                  className="h-full bg-[#6BA3D4] shadow-[0_0_10px_rgba(107,163,212,0.6)]"
                 />
              </div>
           </div>
@@ -113,10 +113,10 @@ export default function CharacterQuiz({ onComplete }: { onComplete: (charName: s
               <button
                 key={index}
                 onClick={() => handleAnswer(opt.type)}
-                className="w-full p-5 rounded-2xl border border-white/10 bg-[#5D4037]/30 text-[#FFF8DC]/90 hover:bg-[#5D4037]/60 hover:text-white hover:border-[#D2B48C]/40 hover:shadow-lg transition-all duration-300 text-left font-semibold group flex items-center justify-between"
+                className="w-full p-5 rounded-2xl border border-white/10 bg-[#2C5282]/20 text-[#E6F4FF]/90 hover:bg-[#2C5282]/40 hover:text-white hover:border-[#6BA3D4]/40 hover:shadow-lg transition-all duration-300 text-left font-semibold group flex items-center justify-between"
               >
                 <span>{opt.text}</span>
-                <span className="opacity-0 group-hover:opacity-100 text-[#D2B48C] transform translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300">
+                <span className="opacity-0 group-hover:opacity-100 text-[#6BA3D4] transform translate-x-[-10px] group-hover:translate-x-0 transition-all duration-300">
                   →
                 </span>
               </button>
