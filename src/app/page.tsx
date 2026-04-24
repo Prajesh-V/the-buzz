@@ -46,7 +46,7 @@ export default function Home() {
         // DISPLAY DURATION: 9 seconds total (3s per poster x 3 posters)
         setTimeout(() => {
           setGameState('ticket')
-        }, 9000) 
+        }, 4500) 
       } else if ('isFull' in result && result.isFull) {
         setGameState('full')
       } else {
