@@ -27,7 +27,7 @@ export default function Home() {
     if (gameState === 'poster') {
       interval = setInterval(() => {
         setPosterIndex((prev) => (prev + 1) % posters.length)
-      }, 3000) // Each poster stays for 3 seconds
+      }, 1500) 
     }
     return () => clearInterval(interval)
   }, [gameState])

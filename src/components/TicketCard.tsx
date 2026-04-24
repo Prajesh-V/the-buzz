@@ -48,7 +48,7 @@ export default function TicketCard({ charName, charId, slot, ticketId }: TicketP
   
   // LOGIC FOR SLOT TIMINGS
   const slotTime = slot === 1 ? "9:30 AM — 12:30 PM" : "2:00 PM — 4:00 PM"
-  const eventDate = "29-03-2026"
+  const eventDate = "29-04-2026"
 
   const downloadTicketImage = async () => {
     if (ticketRef.current === null) return

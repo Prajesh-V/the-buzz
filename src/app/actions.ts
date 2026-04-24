@@ -92,9 +92,7 @@ export async function checkIn(ticketId: string) {
   }
 }
 
-/**
- * UPDATED: Stats with 225 capacity
- */
+
 export async function getBookingStats() {
   try {
     const { data, error } = await supabaseAdmin
